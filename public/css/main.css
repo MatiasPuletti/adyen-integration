@@ -427,4 +427,18 @@ a:hover {
   }
 }
 
+.quantity-input {
+  width: 60px;
+  padding: 5px;
+  border: 1px solid #e6e9eb;
+  border-radius: 4px;
+  margin-left: 10px;
+}
+
+.order-summary-list-list-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 /* end Status page */

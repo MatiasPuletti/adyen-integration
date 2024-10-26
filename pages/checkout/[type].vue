@@ -11,15 +11,19 @@
 </template>
 
 <script setup>
-
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import AdyenCheckout from '@adyen/adyen-web';
 
 const route = useRoute();
 
-// Find type from route
+// Find type from route and quantities from query params
 const type = route.params.type;
+const sunglassesQty = parseInt(route.query.sunglasses) || 1;
+const headphonesQty = parseInt(route.query.headphones) || 1;
+
+// Calculate total amount in cents (50.00 EUR = 5000 cents)
+const totalAmount = (sunglassesQty * 5000) + (headphonesQty * 5000);
 
 // Reactive references
 const sessionId = ref('');
@@ -75,10 +79,10 @@ async function createAdyenCheckout(session, clientKey = null) {
         hasHolderName: true,
         holderNameRequired: true,
         name: "Credit or debit card",
-        amount: { value: 1000, currency: "EUR" },
+        amount: { value: totalAmount, currency: "EUR" },
       },
       paypal: {
-        amount: { currency: "USD", value: 1000 },
+        amount: { currency: "EUR", value: totalAmount },
         environment: "test",
         countryCode: "US", // Only needed for test
       },
@@ -98,7 +102,13 @@ async function createAdyenCheckout(session, clientKey = null) {
 // Function to start checkout
 async function startCheckout() {
   try {
-    const { response, clientKey } = await sendPostRequest(`/api/sessions?type=${type}`);
+    const { response, clientKey } = await sendPostRequest(`/api/sessions?type=${type}`, {
+      amount: totalAmount,
+      items: {
+        sunglasses: sunglassesQty,
+        headphones: headphonesQty
+      }
+    });
 
     const checkout = await createAdyenCheckout(response, clientKey);
     checkout.create(type).mount(paymentRef.value);
@@ -131,5 +141,4 @@ onMounted(async () => {
     await startCheckout();
   }
 });
-
 </script>
